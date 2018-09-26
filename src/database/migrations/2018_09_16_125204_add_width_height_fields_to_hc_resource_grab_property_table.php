@@ -14,8 +14,8 @@ class AddWidthHeightFieldsToHcResourceGrabPropertyTable extends Migration
     public function up()
     {
         Schema::table('hc_resource_grab_property', function (Blueprint $table) {
-            $table->string('width');
-            $table->string('height');
+            $table->string('width')->default('0');
+            $table->string('height')->default('0');
             $table->string('x')->change();
             $table->string('y')->change();
         });

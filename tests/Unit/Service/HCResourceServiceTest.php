@@ -80,7 +80,7 @@ class HCResourceServiceTest extends TestCase
 
     /**
      * @test
-     * @group resource-services
+     * @group resource-service
      */
     public function it_must_store_jpg_image_file_to_local_storage(): void
     {

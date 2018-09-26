@@ -22,7 +22,8 @@
         "php": "^7.1",
         "laravel/framework": "5.6.*",
         "honey-comb/starter": "0.2.*",
-        "intervention/image": "^2.4"
+        "intervention/image": "^2.4",
+        "doctrine/dbal": "^2.8"
     },
     "require-dev": {
         "mockery/mockery": "^1.0",

@@ -41,7 +41,7 @@ class HCGenerateDefaultPreviewThumbnails extends Command
      *
      * @var string
      */
-    protected $signature = 'hc-resources:preview-thumbs';
+    protected $signature = 'hc-resources:preview-thumbs {start=0} {end=1000} {disk=local}';
 
     /**
      * The console command description.
@@ -72,10 +72,19 @@ class HCGenerateDefaultPreviewThumbnails extends Command
      */
     public function handle(): void
     {
-        $resources = $this->resourceService->getRepository()->makeQuery()->select('id', 'path', 'mime_type')->get();
+        $start = $this->argument('start');
+        $end = $this->argument('end');
+        $disk = $this->argument('disk');
+
+        $resources = $this->resourceService->getRepository()->makeQuery()
+            ->select('id', 'path', 'mime_type')
+            ->setEagerLoads([])
+            ->skip($start)
+            ->take($end)
+            ->get();
 
         foreach ($resources as $resource) {
-            $this->resourceService->createPreviewThumb($resource->id, $resource->path, $resource->mime_type, 'local');
+            $this->resourceService->createPreviewThumb($resource->id, $resource->path, $resource->mime_type, $disk);
         }
     }
 }

@@ -293,7 +293,7 @@ class HCResourceService
         array $previewSizes = []
     ): void {
         $imagePreview = config('resources.image_preview');
-        if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType)) {
+        if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
             $path = config('filesystems.disks.' . $disk . '.root');
 
             $destinationPath = $path . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'preview';

@@ -283,14 +283,16 @@ class HCResourceService
      * @param string $resourcePath
      * @param string $mimeType
      * @param string $disk
-     * @param array|null $previewSizes
+     * @param array $previewSizes
+     * @param bool $addToQueue
      */
     public function createPreviewThumb(
         string $id,
         string $resourcePath,
         string $mimeType,
         string $disk,
-        array $previewSizes = []
+        array $previewSizes = [],
+        bool $addToQueue = false
     ): void {
         $imagePreview = config('resources.image_preview');
         if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
@@ -299,15 +301,24 @@ class HCResourceService
             $destinationPath = $path . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'preview';
             $source = $path . DIRECTORY_SEPARATOR . $resourcePath;
 
-            $itemsInstant = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
-                return ($value['generate'] && ($value['default'] ||
-                        isset($previewSizes) && in_array($value['width'] . 'x' . $value['height'], $previewSizes)));
-            });
+            if ($addToQueue) {
+                $itemsInstant = [];
 
-            $itemsJob = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
-                return (!$value['generate'] && ($value['default'] ||
-                        isset($previewSizes) && in_array($value['width'] . 'x' . $value['height'], $previewSizes)));
-            });
+                $itemsJob = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
+                    return ($value['default'] || $previewSizes && in_array($value['width'] . 'x' . $value['height'],
+                            $previewSizes));
+                });
+            } else {
+                $itemsInstant = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
+                    return ($value['generate'] && ($value['default'] ||
+                            $previewSizes && in_array($value['width'] . 'x' . $value['height'], $previewSizes)));
+                });
+
+                $itemsJob = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
+                    return (!$value['generate'] && ($value['default'] ||
+                            $previewSizes && in_array($value['width'] . 'x' . $value['height'], $previewSizes)));
+                });
+            }
 
             if ($itemsInstant) {
                 $this->generatePreviewThumb($id, $itemsInstant, $destinationPath, $source);

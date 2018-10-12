@@ -103,7 +103,7 @@ class HCResourceController extends HCBaseController
                 $request->getLastModified(),
                 null,
                 null,
-                $request->input('preview_sizes', [])
+                $request->input('previewSizes', [])
             );
 
             $data = $request->all();

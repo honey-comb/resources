@@ -35,6 +35,7 @@ use HoneyComb\Resources\Requests\Admin\HCResourceRequest;
 use HoneyComb\Starter\Repositories\HCBaseRepository;
 use HoneyComb\Starter\Repositories\Traits\HCQueryBuilderTrait;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -56,7 +57,7 @@ class HCResourceRepository extends HCBaseRepository
     /**
      * @return null|string
      */
-    protected function translationModel(): ? string
+    protected function translationModel(): ?string
     {
         return HCResourceTranslation::class;
     }
@@ -164,17 +165,19 @@ class HCResourceRepository extends HCBaseRepository
     }
 
     /**
-     * Create data list
      * @param HCResourceRequest $request
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
+     * @return Collection
      */
-    public function getOptions(HCResourceRequest $request)
+    public function getOptions(HCResourceRequest $request): Collection
     {
-        return $this->createBuilderQuery($request)->get()->map(function ($record) {
-            return [
-                'id' => $record->id,
-                'path' => $record->path,
-            ];
-        });
+        $limit = $request->input('limit', 100);
+
+        return $this->createBuilderQuery($request)->limit($limit)->get()
+            ->map(function ($record) {
+                return [
+                    'id' => $record->id,
+                    'path' => $record->path,
+                ];
+            });
     }
 }

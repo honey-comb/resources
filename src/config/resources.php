@@ -35,5 +35,13 @@ return [
     /**
      * resources upload disk
      */
-    'upload_disk' => env('RESOURCES_UPLOAD_DISK', 'local')
+    'upload_disk' => env('RESOURCES_UPLOAD_DISK', 'local'),
+
+    /**
+     * image preview thumbnails
+     */
+    'image_preview' => [
+        ['width' => 100, 'height' => 100, 'quality' => 80, 'generate' => true, 'default' => true],
+        ['width' => 540, 'height' => 400, 'quality' => 80, 'generate' => false, 'default' => false],
+    ]
 ];

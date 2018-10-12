@@ -98,7 +98,13 @@ class HCResourceController extends HCBaseController
         $this->connection->beginTransaction();
 
         try {
-            $record = $this->service->upload($request->getFile(), $request->getLastModified());
+            $record = $this->service->upload(
+                $request->getFile(),
+                $request->getLastModified(),
+                null,
+                null,
+                $request->input('preview_sizes', null)
+            );
 
             $data = $request->all();
 

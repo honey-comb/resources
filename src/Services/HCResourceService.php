@@ -29,6 +29,7 @@ declare(strict_types = 1);
 
 namespace HoneyComb\Resources\Services;
 
+use HoneyComb\Resources\Jobs\ProcessPreviewImage;
 use HoneyComb\Resources\Models\HCResource;
 use HoneyComb\Resources\Repositories\Admin\HCResourceRepository;
 use Illuminate\Http\UploadedFile;
@@ -234,14 +235,16 @@ class HCResourceService
      * @param string|null $lastModified
      * @param string|null $disk
      * @param string|null $customId
+     * @param array|null $previewSizes
      * @return array
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function upload(
         UploadedFile $file,
         string $lastModified = null,
         string $disk = null,
-        string $customId = null
+        string $customId = null,
+        array $previewSizes = []
     ): array {
         try {
             if (is_null($disk)) {
@@ -254,6 +257,7 @@ class HCResourceService
             );
 
             $this->saveInStorage($resource, $file);
+            $this->createPreviewThumb($resource->id, $resource->path, $resource->mime_type, $disk, $previewSizes);
 
             // generate checksum
             if ($resource->size <= config('resources.max_checksum_size')) {
@@ -272,6 +276,110 @@ class HCResourceService
         $resource['storageUrl'] = $this->isLocalOrPublic($disk) ? null : Storage::disk($disk)->url($resource['path']);
 
         return $resource;
+    }
+
+    /**
+     * @param string $id
+     * @param string $resourcePath
+     * @param string $mimeType
+     * @param string $disk
+     * @param array|null $previewSizes
+     */
+    public function createPreviewThumb(
+        string $id,
+        string $resourcePath,
+        string $mimeType,
+        string $disk,
+        array $previewSizes = []
+    ): void {
+        $imagePreview = config('resources.image_preview');
+        if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType)) {
+            $path = config('filesystems.disks.' . $disk . '.root');
+
+            $destinationPath = $path . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'preview';
+            $source = $path . DIRECTORY_SEPARATOR . $resourcePath;
+
+            $itemsInstant = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
+                return ($value['generate'] && ($value['default'] ||
+                        isset($previewSizes) && in_array($value['width'] . 'x' . $value['height'], $previewSizes)));
+            });
+
+            $itemsJob = array_where($imagePreview, function ($value, $key) use ($previewSizes) {
+                return (!$value['generate'] && ($value['default'] ||
+                        isset($previewSizes) && in_array($value['width'] . 'x' . $value['height'], $previewSizes)));
+            });
+
+            if ($itemsInstant) {
+                $this->generatePreviewThumb($id, $itemsInstant, $destinationPath, $source);
+            }
+            if ($itemsJob) {
+                ProcessPreviewImage::dispatch($id, $itemsJob, $destinationPath, $source);
+            }
+        }
+    }
+
+    /**
+     * @param string $resourceId
+     * @param array $items
+     * @param string $destination
+     * @param string $source
+     */
+    public function generatePreviewThumb(string $resourceId, array $items, string $destination, string $source): void
+    {
+        foreach ($items as $item) {
+            $previewWidth = $item['width'];
+            $previewHeight = $item['height'];
+            $previewQuality = $item['quality'];
+
+            $destination .= DIRECTORY_SEPARATOR . $previewWidth . 'x' . $previewHeight;
+            if (!is_dir($destination)) {
+                mkdir($destination, 0755, true);
+            }
+            $destination .= DIRECTORY_SEPARATOR . $resourceId . '.jpg';
+
+            /** @var \Intervention\Image\Image $image */
+            $image = Image::make($source);
+
+            if ($image->width() < $image->height()) {
+                $scale = $image->width() / $previewWidth;
+            } else {
+                $scale = $image->height() / $previewHeight;
+            }
+
+            $width = (integer)($previewWidth * $scale);
+            $height = (integer)($previewHeight * $scale);
+
+            if ($width > $image->width()) {
+                $scale = $image->width() / $previewWidth;
+
+                $width = (integer)($previewWidth * $scale);
+                $height = (integer)($previewHeight * $scale);
+            }
+
+            $x = ($image->width() - $width) * 0.5;
+            $y = ($image->height() - $height) * 0.5;
+
+            $image->crop($width, $height, (integer)($x), (integer)($y));
+            $image->resize($previewWidth, $previewHeight);
+
+            $image->save($destination, $previewQuality);
+            $image->destroy();
+        }
+    }
+
+    /**
+     * @param string $mimeType
+     * @return bool
+     */
+    private function isValidForPreviewThumb(string $mimeType): bool
+    {
+        $validMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+
+        if (in_array($mimeType, $validMimeTypes)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

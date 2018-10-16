@@ -298,7 +298,7 @@ class HCResourceService
         if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
             $path = config('filesystems.disks.' . $disk . '.root');
 
-            $destinationPath = $path . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'preview';
+            $destinationPath = storage_path('app/public/preview');
             $source = $path . DIRECTORY_SEPARATOR . $resourcePath;
 
             if ($addToQueue) {
@@ -342,11 +342,11 @@ class HCResourceService
             $previewHeight = $item['height'];
             $previewQuality = $item['quality'];
 
-            $destination .= DIRECTORY_SEPARATOR . $previewWidth . 'x' . $previewHeight;
-            if (!is_dir($destination)) {
-                mkdir($destination, 0755, true);
+            $destinationPath = $destination .DIRECTORY_SEPARATOR . $previewWidth . 'x' . $previewHeight;
+            if (!is_dir($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
             }
-            $destination .= DIRECTORY_SEPARATOR . $resourceId . '.jpg';
+            $destinationPath .= DIRECTORY_SEPARATOR . $resourceId . '.jpg';
 
             /** @var \Intervention\Image\Image $image */
             $image = Image::make($source);
@@ -373,7 +373,7 @@ class HCResourceService
             $image->crop($width, $height, (integer)($x), (integer)($y));
             $image->resize($previewWidth, $previewHeight);
 
-            $image->save($destination, $previewQuality);
+            $image->save($destinationPath, $previewQuality);
             $image->destroy();
         }
     }
@@ -391,6 +391,28 @@ class HCResourceService
         }
 
         return false;
+    }
+
+    /**
+     * @param array $ids
+     * @return array
+     */
+    public function forceDelete(array $ids): array
+    {
+        $deleted = $this->getRepository()->deleteForce($ids);
+        $imagePreview = config('resources.image_preview');
+
+        foreach ($deleted as $item) {
+            if (isset($imagePreview)) {
+                foreach ($imagePreview as $key => $img) {
+                    $previewpath = 'preview' . DIRECTORY_SEPARATOR . $key . DIRECTORY_SEPARATOR . $item['id'] . '.jpg';
+                    Storage::disk('public')->delete($previewpath);
+                }
+            }
+            $this->removeResourceFromStorage($item, $item['disk']);
+        }
+
+        return $deleted;
     }
 
     /**

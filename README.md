@@ -33,3 +33,6 @@ or
 ```js
     composer require honey-comb/resources
 ```
+
+## Preview Thumbnails
+run command ```php artisan storage:link``` to make preview thumbnails publicly accessible

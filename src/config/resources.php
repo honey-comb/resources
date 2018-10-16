@@ -41,7 +41,7 @@ return [
      * image preview thumbnails
      */
     'image_preview' => [
-        ['width' => 100, 'height' => 100, 'quality' => 80, 'generate' => true, 'default' => true],
-        ['width' => 540, 'height' => 400, 'quality' => 80, 'generate' => false, 'default' => false],
+        '100x100' => ['width' => 100, 'height' => 100, 'quality' => 80, 'generate' => true, 'default' => true],
+        '540x400' => ['width' => 540, 'height' => 400, 'quality' => 80, 'generate' => false, 'default' => false],
     ]
 ];

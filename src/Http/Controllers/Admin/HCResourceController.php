@@ -254,7 +254,7 @@ class HCResourceController extends HCBaseController
         $this->connection->beginTransaction();
 
         try {
-            $deleted = $this->service->getRepository()->deleteForce($request->getListIds());
+            $deleted = $this->service->forceDelete($request->getListIds());
 
             $this->connection->commit();
         } catch (\Throwable $exception) {

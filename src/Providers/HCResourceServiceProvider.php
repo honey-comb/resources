@@ -71,6 +71,19 @@ class HCResourceServiceProvider extends HCBaseServiceProvider
     /**
      *
      */
+    protected function registerPublishes(): void
+    {
+        parent::registerPublishes();
+
+        $this->publishes([
+            $this->packagePath('resources/assets') => storage_path('app/public/hc-resources'),
+        ], 'hc-resources-assets');
+
+    }
+
+    /**
+     *
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(

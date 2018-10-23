@@ -6,7 +6,7 @@ namespace HoneyComb\Resources\Http\Controllers\Admin;
 
 use HoneyComb\Resources\Services\Admin\HCResourceTagService;
 use HoneyComb\Resources\Http\Requests\Admin\HCResourceTagRequest;
-use HoneyComb\Resources\Models\HCResourcesTag;
+use HoneyComb\Resources\Models\HCResourceTag;
 
 use HoneyComb\Core\Http\Controllers\HCBaseController;
 use HoneyComb\Core\Http\Controllers\Traits\HCAdminListHeaders;
@@ -81,9 +81,9 @@ class HCResourceTagController extends HCBaseController
 
     /**
     * @param string $id
-    * @return HCResourcesTag|null
+    * @return HCResourceTag|null
     */
-   public function getById (string $id): ? HCResourcesTag
+   public function getById (string $id): ? HCResourceTag
    {
        return $this->service->getRepository()->findOneBy(['id' => $id]);
    }

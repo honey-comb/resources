@@ -130,6 +130,8 @@ class HCResourceService
 
         if (!Storage::disk($resource->disk)->exists($resource->path)) {
             logger()->info('File not found in storage', ['id' => $id, 'path' => $resource->path]);
+
+            return $this->showNotFound($resource->mime_type);
             exit;
         }
 
@@ -823,5 +825,32 @@ class HCResourceService
         $name = str_replace($resource->extension, '', $resource->original_name);
 
         return str_slug($name) . $resource->extension;
+    }
+
+    /**
+     * @param $mimeType
+     * @return StreamedResponse
+     */
+    private function showNotFound($mimeType): StreamedResponse
+    {
+        switch ($mimeType) {
+            case 'video/mp4':
+                $notFoundFile = 'video';
+                break;
+            case 'text/plain':
+            case 'application/pdf':
+            case 'application/octet-stream':
+                $notFoundFile = 'file';
+                break;
+            default:
+                $notFoundFile = 'image';
+        }
+
+        $headers = [
+            'Content-Type' => 'image/svg+xml',
+        ];
+        $notFoundUrl = 'hc-resources/img/' . $notFoundFile . '.svg';
+
+        return Storage::disk('public')->response($notFoundUrl, '', $headers);
     }
 }

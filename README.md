@@ -34,5 +34,9 @@ or
     composer require honey-comb/resources
 ```
 
+## File not found
+ 
+Run command ```php artisan vendor:publish --tag=hc-resources-assets``` to publish icons for files that can't be found in disk
+
 ## Preview Thumbnails
-run command ```php artisan storage:link``` to make preview thumbnails publicly accessible
+Run command ```php artisan storage:link``` to make preview thumbnails publicly accessible

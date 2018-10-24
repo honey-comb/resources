@@ -833,24 +833,27 @@ class HCResourceService
      */
     private function showNotFound($mimeType): StreamedResponse
     {
+        $fileNotFound = config('resources.file_not_found');
+
         switch ($mimeType) {
             case 'video/mp4':
-                $notFoundFile = 'video';
+                $notFound = $fileNotFound['video'];
                 break;
             case 'text/plain':
             case 'application/pdf':
             case 'application/octet-stream':
-                $notFoundFile = 'file';
+                $notFound = $fileNotFound['file'];
                 break;
             default:
-                $notFoundFile = 'image';
+                $notFound = $fileNotFound['image'];
         }
 
         $headers = [
             'Content-Type' => 'image/svg+xml',
         ];
-        $notFoundUrl = 'hc-resources/img/' . $notFoundFile . '.svg';
 
-        return Storage::disk('public')->response($notFoundUrl, '', $headers);
+        return new StreamedResponse(function () use ($notFound) {
+            echo $notFound;
+        }, 200, $headers);
     }
 }

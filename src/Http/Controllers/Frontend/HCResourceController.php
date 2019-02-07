@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2018 innovationbase
+ * @copyright 2019 innovationbase
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ use HoneyComb\Core\Http\Controllers\HCBaseController;
 use HoneyComb\Resources\Http\Events\Frontend\HCResourceCreated;
 use HoneyComb\Resources\Requests\Frontend\HCResourceRequest;
 use HoneyComb\Resources\Services\HCResourceService;
-use HoneyComb\Starter\Helpers\HCFrontendResponse;
+use HoneyComb\Starter\Helpers\HCResponse;
 use Illuminate\Database\Connection;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -55,7 +55,7 @@ class HCResourceController extends HCBaseController
     protected $connection;
 
     /**
-     * @var HCFrontendResponse
+     * @var HCResponse
      */
     protected $response;
 
@@ -63,9 +63,9 @@ class HCResourceController extends HCBaseController
      * HCResourceController constructor.
      * @param Connection $connection
      * @param HCResourceService $service
-     * @param HCFrontendResponse $response
+     * @param HCResponse $response
      */
-    public function __construct(Connection $connection, HCResourceService $service, HCFrontendResponse $response)
+    public function __construct(Connection $connection, HCResourceService $service, HCResponse $response)
     {
         $this->service = $service;
         $this->connection = $connection;

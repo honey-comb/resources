@@ -1,4 +1,29 @@
 <?php
+/**
+ * @copyright 2019 innovationbase
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Contact InnovationBase:
+ * E-mail: hello@innovationbase.eu
+ * https://innovationbase.eu
+ */
 
 declare(strict_types = 1);
 
@@ -10,7 +35,7 @@ use HoneyComb\Resources\Models\HCResourceGrabProperty;
 
 use HoneyComb\Core\Http\Controllers\HCBaseController;
 use HoneyComb\Core\Http\Controllers\Traits\HCAdminListHeaders;
-use HoneyComb\Starter\Helpers\HCFrontendResponse;
+use HoneyComb\Starter\Helpers\HCResponse;
 use Illuminate\Database\Connection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -30,17 +55,17 @@ class HCResourceGrabPropertyController extends HCBaseController
     private $connection;
 
     /**
-     * @var HCFrontendResponse
+     * @var HCResponse
      */
     private $response;
 
     /**
      * HCResourceGrabPropertyController constructor.
      * @param Connection $connection
-     * @param HCFrontendResponse $response
+     * @param HCResponse $response
      * @param HCResourceGrabPropertyService $service
      */
-    public function __construct(Connection $connection, HCFrontendResponse $response, HCResourceGrabPropertyService $service)
+    public function __construct(Connection $connection, HCResponse $response, HCResourceGrabPropertyService $service)
     {
         $this->connection = $connection;
         $this->response = $response;

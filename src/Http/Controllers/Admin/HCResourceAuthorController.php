@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2018 interactivesolutions
+ * @copyright 2019 innovationbase
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * Contact InteractiveSolutions:
- * E-mail: hello@interactivesolutions.lt
- * http://www.interactivesolutions.lt
+ * Contact InnovationBase:
+ * E-mail: hello@innovationbase.eu
+ * https://innovationbase.eu
  */
 
 declare(strict_types = 1);
@@ -38,7 +38,7 @@ use HoneyComb\Resources\Events\Admin\ResourceAuthor\HCResourceAuthorSoftDeleted;
 use HoneyComb\Resources\Events\Admin\ResourceAuthor\HCResourceAuthorUpdated;
 use HoneyComb\Resources\Requests\Admin\HCResourceAuthorRequest;
 use HoneyComb\Resources\Services\HCResourceAuthorService;
-use HoneyComb\Starter\Helpers\HCFrontendResponse;
+use HoneyComb\Starter\Helpers\HCResponse;
 use Illuminate\Database\Connection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -62,17 +62,17 @@ class HCResourceAuthorController extends HCBaseController
     protected $connection;
 
     /**
-     * @var HCFrontendResponse
+     * @var HCResponse
      */
     protected $response;
 
     /**
      * HCResourceAuthorController constructor.
      * @param Connection $connection
-     * @param HCFrontendResponse $response
+     * @param HCResponse $response
      * @param HCResourceAuthorService $service
      */
-    public function __construct(Connection $connection, HCFrontendResponse $response, HCResourceAuthorService $service)
+    public function __construct(Connection $connection, HCResponse $response, HCResourceAuthorService $service)
     {
         $this->connection = $connection;
         $this->response = $response;

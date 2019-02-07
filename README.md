@@ -14,7 +14,7 @@ If you want to use laravel version 5.6.* [use resources package version 0.4.*](h
 ## Requirement
 
  - php: `^7.1`
- - laravel: `^5.6`
+ - laravel: `^5.7`
  - composer
  
  ## Installation

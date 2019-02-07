@@ -9,7 +9,7 @@ HoneyComb CMS resources functions
 
 This is part resources package for HoneyComb CMS package.
 
-If you want to use laravel version 5.5.* [use resources package version 0.2.*](https://github.com/honey-comb/resources/tree/5.5 "Resources package version 0.2.*")
+If you want to use laravel version 5.6.* [use resources package version 0.4.*](https://github.com/honey-comb/resources/tree/5.6 "Resources package version 0.4.*")
 
 ## Requirement
 

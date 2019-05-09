@@ -296,6 +296,29 @@ class HCResourceService
         array $previewSizes = [],
         bool $addToQueue = false
     ): void {
+        if (config('resources.resize_original') === true && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)){
+            //set resize params
+            $originalWidth = config('resources.original_dimensions.width');
+            $originalHeight = config('resources.original_dimensions.height');
+            $originalQuality = config('resources.original_dimensions.quality');
+            if(filter_var($originalWidth, FILTER_VALIDATE_INT)===false)
+                $originalWidth = 1920;
+            if(filter_var($originalHeight, FILTER_VALIDATE_INT)===false)
+                $originalWidth = 1080;
+            if(filter_var($originalQuality, FILTER_VALIDATE_INT)===false)
+                $originalQuality = 100;
+
+            //resize
+            $path = config('filesystems.disks.' . $disk . '.root');
+            $source = $path . DIRECTORY_SEPARATOR . $resourcePath;
+
+            $image = Image::make($source);
+
+            $image->resize($originalWidth, $originalHeight, function ($constraint) {
+                 $constraint->upsize();
+            });
+            $image->save($source, $originalQuality);
+        }
         $imagePreview = config('resources.image_preview');
         if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
             $path = config('filesystems.disks.' . $disk . '.root');

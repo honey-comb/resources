@@ -315,7 +315,8 @@ class HCResourceService
             $image = Image::make($source);
 
             $image->resize($originalWidth, $originalHeight, function ($constraint) {
-                 $constraint->upsize();
+                $constraint->aspectRatio();
+                $constraint->upsize();
             });
             $image->save($source, $originalQuality);
         }

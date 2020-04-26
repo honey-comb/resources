@@ -64,17 +64,11 @@ class HCResource extends HCUuidSoftModel
         'mime_type',
         'size',
         'checksum',
-        'author_id',
         'original_at',
         'disk',
     ];
 
-    protected $with = [
-        'author',
-        'translation',
-        'translations',
-        'tags',
-    ];
+    protected $with = [];
 
     /**
      * Get file path of the resource
@@ -94,21 +88,5 @@ class HCResource extends HCUuidSoftModel
     public function isImage(): bool
     {
         return strpos($this->mime_type, 'image') !== false;
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function author(): HasOne
-    {
-        return $this->hasOne(HCResourceAuthor::class, 'id', 'author_id');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(HCResourceTag::class, HCResourceTagConnection::getTableName(), 'resource_id', 'tag_id');
     }
 }

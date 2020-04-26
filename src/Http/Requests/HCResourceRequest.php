@@ -27,21 +27,32 @@
 
 declare(strict_types = 1);
 
-namespace HoneyComb\Resources\Requests\Frontend;
+namespace HoneyComb\Resources\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 
 /**
  * Class HCResourceRequest
- * @package HoneyComb\Resources\Requests\Admin
+ * @package HoneyComb\Resources\Requests
  */
 class HCResourceRequest extends FormRequest
 {
     /**
+     * Get ids to delete, force delete or restore
+     *
+     * @return array
+     */
+    public function getListIds(): array
+    {
+        return $this->input('list', []);
+    }
+
+    /**
      * Get resource file
      *
-     * @return array|\Illuminate\Http\UploadedFile|null
+     * @return array|UploadedFile|null
      */
     public function getFile()
     {
@@ -75,8 +86,24 @@ class HCResourceRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'file' => 'required',
-        ];
+        switch ($this->method()) {
+            case 'POST':
+                if ($this->segment(4) == 'restore') {
+                    return [
+                        'list' => 'required|array',
+                    ];
+                }
+
+                return [
+                    'file' => 'required',
+                ];
+
+            case 'DELETE':
+                return [
+                    'list' => 'required|array',
+                ];
+        }
+
+        return [];
     }
 }

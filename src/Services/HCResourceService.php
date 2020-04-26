@@ -25,13 +25,16 @@
  * https://innovationbase.eu
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace HoneyComb\Resources\Services;
 
+use HoneyComb\Resources\Http\DTO\ResourceDTO;
 use HoneyComb\Resources\Jobs\ProcessPreviewImage;
 use HoneyComb\Resources\Models\HCResource;
-use HoneyComb\Resources\Repositories\Admin\HCResourceRepository;
+use HoneyComb\Resources\Repositories\HCResourceRepository;
+use HoneyComb\Resources\Requests\HCResourceRequest;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -247,7 +250,8 @@ class HCResourceService
         string $disk = null,
         string $customId = null,
         array $previewSizes = []
-    ): array {
+    ): array
+    {
         try {
             if (is_null($disk)) {
                 $disk = config('resources.upload_disk');
@@ -295,17 +299,18 @@ class HCResourceService
         string $disk,
         array $previewSizes = [],
         bool $addToQueue = false
-    ): void {
-        if (config('resources.resize_original') === true && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)){
+    ): void
+    {
+        if (config('resources.resize_original') === true && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
             //set resize params
             $originalWidth = config('resources.original_dimensions.width');
             $originalHeight = config('resources.original_dimensions.height');
             $originalQuality = config('resources.original_dimensions.quality');
-            if(filter_var($originalWidth, FILTER_VALIDATE_INT)===false)
+            if (filter_var($originalWidth, FILTER_VALIDATE_INT) === false)
                 $originalWidth = 1920;
-            if(filter_var($originalHeight, FILTER_VALIDATE_INT)===false)
+            if (filter_var($originalHeight, FILTER_VALIDATE_INT) === false)
                 $originalWidth = 1080;
-            if(filter_var($originalQuality, FILTER_VALIDATE_INT)===false)
+            if (filter_var($originalQuality, FILTER_VALIDATE_INT) === false)
                 $originalQuality = 100;
 
             //resize
@@ -320,7 +325,9 @@ class HCResourceService
             });
             $image->save($source, $originalQuality);
         }
+        
         $imagePreview = config('resources.image_preview');
+        
         if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
             $path = config('filesystems.disks.' . $disk . '.root');
 
@@ -368,7 +375,7 @@ class HCResourceService
             $previewHeight = $item['height'];
             $previewQuality = $item['quality'];
 
-            $destinationPath = $destination .DIRECTORY_SEPARATOR . $previewWidth . 'x' . $previewHeight;
+            $destinationPath = $destination . DIRECTORY_SEPARATOR . $previewWidth . 'x' . $previewHeight;
             if (!is_dir($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
             }
@@ -456,7 +463,8 @@ class HCResourceService
         string $disk = null,
         string $customId = null,
         string $mimeType = null
-    ): ?array {
+    ): ?array
+    {
         // TODO maybe we should add exceptions instead of returning null values?
         if ($customId) {
             if ($resource = $this->getRepository()->find($customId)) {
@@ -513,7 +521,8 @@ class HCResourceService
         string $disk,
         string $lastModified = null,
         string $customId = null
-    ): array {
+    ): array
+    {
         $params = [];
 
         if ($customId) {
@@ -646,6 +655,32 @@ class HCResourceService
     }
 
     /**
+     * @param string $id
+     * @return Model|null
+     */
+    public function getById(string $id)
+    {
+        return $this->getRepository()->makeQuery()->findOrFail($id);
+    }
+
+    /**
+     * @param HCResourceRequest $request
+     * @return mixed
+     */
+    public function getListPaginate(HCResourceRequest $request)
+    {
+        $data = $this->getRepository()->getListPaginate($request);
+
+        $data->transform(function (HCResource $model) {
+
+            return (new ResourceDTO())
+                ->setModel($model)->jsonDataList();
+        });
+
+        return $data;
+    }
+
+    /**
      * generating video preview
      *
      * @param HCResource $resource
@@ -701,7 +736,8 @@ class HCResourceService
         int $width = 0,
         int $height = 0,
         $fit = null
-    ): string {
+    ): string
+    {
         if ($this->isLocalOrPublic($disk)) {
             $folder = config('filesystems.disks.' . $disk . '.root') . '/cache/' . str_replace('-', '/', $resourceId);
 

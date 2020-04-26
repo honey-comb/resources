@@ -25,24 +25,19 @@
  * https://innovationbase.eu
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace HoneyComb\Resources\Http\Controllers\Frontend;
 
-use HoneyComb\Core\Http\Controllers\HCBaseController;
-use HoneyComb\Resources\Http\Events\Frontend\HCResourceCreated;
-use HoneyComb\Resources\Requests\Frontend\HCResourceRequest;
+use App\Http\Controllers\Controller;
 use HoneyComb\Resources\Services\HCResourceService;
-use HoneyComb\Starter\Helpers\HCFrontendResponse;
-use Illuminate\Database\Connection;
-use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Class HCResourceController
  * @package HoneyComb\Resources\Http\Controllers\Frontend
  */
-class HCResourceController extends HCBaseController
+class HCResourceController extends Controller
 {
     /**
      * @var HCResourceService
@@ -50,26 +45,12 @@ class HCResourceController extends HCBaseController
     protected $service;
 
     /**
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
-     * @var HCFrontendResponse
-     */
-    protected $response;
-
-    /**
      * HCResourceController constructor.
-     * @param Connection $connection
      * @param HCResourceService $service
-     * @param HCFrontendResponse $response
      */
-    public function __construct(Connection $connection, HCResourceService $service, HCFrontendResponse $response)
+    public function __construct(HCResourceService $service)
     {
         $this->service = $service;
-        $this->connection = $connection;
-        $this->response = $response;
     }
 
     /**
@@ -84,74 +65,5 @@ class HCResourceController extends HCBaseController
     public function show(string $id = null, int $width = 0, int $height = 0, bool $fit = false): StreamedResponse
     {
         return $this->service->show($id, $width, $height, $fit);
-    }
-
-    /**
-     * Store record
-     *
-     * @param HCResourceRequest $request
-     * @return JsonResponse
-     * @throws \Exception
-     */
-    public function store(HCResourceRequest $request): JsonResponse
-    {
-        $this->connection->beginTransaction();
-
-        try {
-            $record = $this->service->upload(
-                $request->getFile(),
-                $request->getLastModified(),
-                null,
-                null,
-                $request->input('previewSizes', [])
-            );
-
-            $data = $request->all();
-
-            if (sizeof($data) > 2) {
-                array_forget($data, ['file', 'lastModified']);
-
-                /** @var \HoneyComb\Resources\Models\HCResource $recordM */
-                $recordM = $this->service->getRepository()->find($record['id']);
-                $recordM->update($data);
-
-                $translation = [
-                    'language_code' => app()->getLocale(),
-                    'label' => '',
-                ];
-
-                foreach ($data as $key => $value) {
-                    if (strpos($key, 'translation_') !== false) {
-                        $key = explode('_', $key)[1];
-
-                        $translation[$key] = $value;
-                    } else {
-                        if ($key === 'tags') {
-                            $recordM->tags()->sync(explode(',', $value));
-                        }
-                    }
-                }
-
-                $recordM->translation()->create($translation);
-            }
-
-            $this->connection->commit();
-        } catch (\Throwable $exception) {
-            $this->connection->rollBack();
-
-            report($exception);
-
-            return $this->response->error($exception->getMessage());
-        }
-
-        event(new HCResourceCreated($record));
-
-        $response = [
-            'id' => $record['id'],
-            'url' => route('resource.get', $record['id']),
-            'storageUrl' => $record['storageUrl'],
-        ];
-
-        return $this->response->success('Uploaded', $response);
     }
 }

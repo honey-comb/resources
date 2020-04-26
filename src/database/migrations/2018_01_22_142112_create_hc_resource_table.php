@@ -59,7 +59,7 @@ class CreateHcResourceTable extends Migration
             $table->bigInteger('size');
             $table->string('checksum', 64)->nullable();
 
-            $table->foreign('uploaded_by')->references('id')->on('hc_user')->onUpdate('NO ACTION')->onDelete('NO ACTION');
+            $table->foreign('uploaded_by')->references('id')->on('users')->onUpdate('NO ACTION')->onDelete('NO ACTION');
         });
     }
 

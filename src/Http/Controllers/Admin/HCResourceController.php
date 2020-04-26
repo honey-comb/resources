@@ -25,35 +25,26 @@
  * http://www.interactivesolutions.lt
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace HoneyComb\Resources\Http\Controllers\Admin;
+namespace HoneyComb\Resources\Http\Controllers;
 
-use HoneyComb\Core\Http\Controllers\HCBaseController;
-use HoneyComb\Core\Http\Controllers\Traits\HCAdminListHeaders;
-use HoneyComb\Resources\Events\Admin\Resource\HCResourceCreated;
-use HoneyComb\Resources\Events\Admin\Resource\HCResourceForceDeleted;
-use HoneyComb\Resources\Events\Admin\Resource\HCResourceRestored;
-use HoneyComb\Resources\Events\Admin\Resource\HCResourceSoftDeleted;
-use HoneyComb\Resources\Events\Admin\Resource\HCResourceUpdated;
+use App\Http\Controllers\Controller;
+use App\Http\DTO\ResourceDTO;
 use HoneyComb\Resources\Models\HCResource;
-use HoneyComb\Resources\Requests\Admin\HCResourceRequest;
-use HoneyComb\Resources\Services\Admin\HCResourceTagService;
+use HoneyComb\Resources\Requests\HCResourceRequest;
 use HoneyComb\Resources\Services\HCResourceService;
-use HoneyComb\Starter\Helpers\HCFrontendResponse;
+use HoneyComb\Starter\Helpers\HCResponse;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Connection;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
 
 /**
  * Class HCResourceController
- * @package HoneyComb\Resources\Http\Controllers\Admin
+ * @package HoneyComb\Resources\Http\Controllers
  */
-class HCResourceController extends HCBaseController
+class HCResourceController extends Controller
 {
-    use HCAdminListHeaders;
-
     /**
      * @var HCResourceService
      */
@@ -65,100 +56,56 @@ class HCResourceController extends HCBaseController
     protected $connection;
 
     /**
-     * @var HCFrontendResponse
+     * @var HCResponse
      */
-    protected $response;
-    /**
-     * @var \HoneyComb\Resources\Services\Admin\HCResourceTagService
-     */
-    private $resourceTagService;
+    private $response;
 
     /**
      * HCResourceController constructor.
      * @param Connection $connection
-     * @param HCFrontendResponse $response
+     * @param HCResponse $response
      * @param HCResourceService $service
-     * @param \HoneyComb\Resources\Services\Admin\HCResourceTagService $resourceTagService
      */
     public function __construct(
         Connection $connection,
-        HCFrontendResponse $response,
-        HCResourceService $service,
-        HCResourceTagService $resourceTagService
-    ) {
+        HCResponse $response,
+        HCResourceService $service
+    )
+    {
         $this->connection = $connection;
         $this->response = $response;
         $this->service = $service;
-        $this->resourceTagService = $resourceTagService;
-    }
-
-    /**
-     * Admin panel page view
-     *
-     * @return View
-     */
-    public function index(): View
-    {
-        $config = [
-            'title' => trans('HCResource::resource.page_title'),
-            'url' => route('admin.api.resource'),
-            'form' => route('admin.api.form-manager', ['resource']),
-            'headers' => $this->getTableColumns(),
-            'actions' => $this->getActions('honey_comb_resources_resource'),
-        ];
-
-        return view('HCCore::admin.service.index', ['config' => $config]);
-    }
-
-    /**
-     * Get admin page table columns settings
-     *
-     * @return array
-     */
-    public function getTableColumns(): array
-    {
-        $columns = [
-            'id' => $this->headerImage(trans('HCResource::resource.preview'), 100, 100, true),
-            'uploaded_by' => $this->headerText(trans('HCResource::resource.uploaded_by')),
-            'path' => $this->headerText(trans('HCResource::resource.path')),
-            'original_name' => $this->headerText(trans('HCResource::resource.original_name')),
-            'size' => $this->headerText(trans('HCResource::resource.size')),
-            'full_path' => $this->headerCopy(trans('HCResource::resource.full_path'), 'id',
-                route('resource.get', '') . '/'),
-        ];
-
-        return $columns;
     }
 
     /**
      * @param string $id
-     * @return \HoneyComb\Resources\Models\HCResource|\HoneyComb\Resources\Repositories\Admin\HCResourceRepository|\Illuminate\Database\Eloquent\Model|null
+     * @return array
      */
-    public function getById(string $id)
+    public function getById(string $id): array
     {
-        return $this->service->getRepository()->makeQuery()->with([
-            'author' => function(HasOne $builder) {
-                $builder->select('id', 'name as label');
-            },
-        ])->find($id);
+        /** @var HCResource $record */
+        $record = $this->service->getById($id);
+
+        return (new ResourceDTO())->setModel($record)->jsonData();
     }
 
     /**
-     * Creating data list
      * @param HCResourceRequest $request
      * @return JsonResponse
+     * @throws BindingResolutionException
      */
     public function getListPaginate(HCResourceRequest $request): JsonResponse
     {
-        return response()->json(
-            $this->service->getRepository()->getListPaginate($request)
-        );
+        $data = $this->service->getListPaginate($request);
+
+        return response()->json($data);
     }
 
     /**
      * Create data list
      * @param HCResourceRequest $request
      * @return JsonResponse
+     * @throws BindingResolutionException
      */
     public function getOptions(HCResourceRequest $request): JsonResponse
     {
@@ -168,25 +115,87 @@ class HCResourceController extends HCBaseController
     }
 
     /**
-     * Updating menu group record
+     * Store record
      *
      * @param HCResourceRequest $request
-     * @param string $id
-     * @param bool $returnData
      * @return JsonResponse
+     * @throws \Exception
+     */
+    public function store(HCResourceRequest $request): JsonResponse
+    {
+        $this->connection->beginTransaction();
+
+        try {
+            /** @var HCResource $record */
+            $record = $this->service->upload(
+                $request->getFile(),
+                $request->getLastModified(),
+                null,
+                null,
+                $request->input('previewSizes', [])
+            );
+
+            $data = $request->all();
+
+            if (sizeof($data) > 2) {
+                array_forget($data, ['file', 'lastModified']);
+
+                /** @var HCResource $recordM */
+                $recordM = $this->service->getRepository()->find($record['id']);
+                $recordM->update($data);
+
+                $translation = [
+                    'language_code' => app()->getLocale(),
+                    'label' => '',
+                ];
+
+                foreach ($data as $key => $value) {
+                    if (strpos($key, 'translation_') !== false) {
+                        $key = explode('_', $key)[1];
+
+                        $translation[$key] = $value;
+                    } else {
+                        if ($key === 'tags') {
+                            $recordM->tags()->sync(explode(',', $value));
+                        }
+                    }
+                }
+
+                $recordM->translation()->create($translation);
+            }
+
+            $this->connection->commit();
+        } catch (\Throwable $exception) {
+            $this->connection->rollBack();
+
+            report($exception);
+
+            return $this->response->error($exception->getMessage());
+        }
+
+        $response = [
+            'id' => $record['id'],
+            'url' => route('resource.get', $record['id']),
+            'storageUrl' => $record['storageUrl'],
+        ];
+
+        return $this->response->success('Uploaded', $response);
+    }
+
+    /**
+     * @param HCResourceRequest $request
+     * @param string $id
+     * @return JsonResponse
+     * @throws BindingResolutionException
      */
     public function update(HCResourceRequest $request, string $id): JsonResponse
     {
         /** @var HCResource $record */
         $record = $this->service->getRepository()->findOneBy(['id' => $id]);
-        $record->update($request->getRecordData());
-        $record->updateTranslations($request->getTranslations());
-        $record->tags()->sync($request->getTags($this->resourceTagService->getRepository()));
+        $record->update($request->all());
 
         if ($record) {
             $record = $this->service->getRepository()->find($id);
-
-            event(new HCResourceUpdated($record));
         }
 
         return $this->response->success('Updated', $record);
@@ -213,8 +222,6 @@ class HCResourceController extends HCBaseController
             return $this->response->error($exception->getMessage());
         }
 
-        event(new HCResourceSoftDeleted($deleted));
-
         return $this->response->success('Successfully deleted');
     }
 
@@ -239,8 +246,6 @@ class HCResourceController extends HCBaseController
             return $this->response->error($exception->getMessage());
         }
 
-        event(new HCResourceRestored($restored));
-
         return $this->response->success('Successfully restored');
     }
 
@@ -264,8 +269,6 @@ class HCResourceController extends HCBaseController
 
             return $this->response->error($exception->getMessage());
         }
-
-        event(new HCResourceForceDeleted($deleted));
 
         return $this->response->success('Successfully deleted');
     }

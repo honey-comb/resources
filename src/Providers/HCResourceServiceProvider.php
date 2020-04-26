@@ -29,7 +29,7 @@ declare(strict_types = 1);
 
 namespace HoneyComb\Resources\Providers;
 
-use HoneyComb\Resources\Repositories\Admin\HCResourceRepository;
+use HoneyComb\Resources\Repositories\HCResourceRepository;
 use HoneyComb\Resources\Services\HCResourceService;
 use HoneyComb\Starter\Providers\HCBaseServiceProvider;
 use HoneyComb\Resources\Console\HCGenerateDefaultPreviewThumbnails;
@@ -80,6 +80,8 @@ class HCResourceServiceProvider extends HCBaseServiceProvider
         $this->registerRepositories();
 
         $this->registerServices();
+
+        $this->loadRoutesFrom(__DIR__ . '/../Routes/routes.php');
     }
 
     /**

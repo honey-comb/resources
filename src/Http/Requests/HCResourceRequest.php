@@ -36,6 +36,8 @@ use Illuminate\Support\Carbon;
 /**
  * Class HCResourceRequest
  * @package HoneyComb\Resources\Requests
+ *
+ * @property string $preserve
  */
 class HCResourceRequest extends FormRequest
 {

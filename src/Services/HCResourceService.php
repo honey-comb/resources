@@ -249,7 +249,8 @@ class HCResourceService
         string $lastModified = null,
         string $disk = null,
         string $customId = null,
-        array $previewSizes = []
+        array $previewSizes = [],
+        bool $preserve = false
     ): array
     {
         try {
@@ -325,9 +326,9 @@ class HCResourceService
             });
             $image->save($source, $originalQuality);
         }
-        
+
         $imagePreview = config('resources.image_preview');
-        
+
         if (isset($imagePreview) && $this->isValidForPreviewThumb($mimeType) && Storage::disk($disk)->exists($resourcePath)) {
             $path = config('filesystems.disks.' . $disk . '.root');
 

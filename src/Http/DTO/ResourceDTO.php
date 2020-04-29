@@ -15,6 +15,7 @@ class ResourceDTO extends HCBaseDTO {
     {
         $this->id = $resource->id;
         $this->original_name = $resource->original_name;
+        $this->preserve = $resource->preserve;
 
         return $this;
     }
@@ -27,7 +28,7 @@ class ResourceDTO extends HCBaseDTO {
         return [
             'id' => $this->id,
             'original_name' => $this->original_name,
-            'path' => route('resource.get', $this->id)
+            'preserve' => boolval($this->preserve),
         ];
     }
 
@@ -39,7 +40,7 @@ class ResourceDTO extends HCBaseDTO {
         return [
             'id' => $this->id,
             'original_name' => $this->original_name,
-            'path' => route('resource.get', $this->id)
+            'preserve' => boolval($this->preserve),
         ];
     }
 }

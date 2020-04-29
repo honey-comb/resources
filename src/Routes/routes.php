@@ -1,11 +1,12 @@
 <?php
 
-Route::prefix('resources')
+Route::prefix('api/resources')
     ->middleware('api')
     ->namespace('\\HoneyComb\\Resources\\Http\\Controllers')
     ->group(function () {
 
         Route::get('/', 'HCResourceController@getListPaginate');
+        Route::delete('/', 'HCResourceController@deleteSoft');
         Route::post('/upload', 'HCResourceController@store');
     });
 

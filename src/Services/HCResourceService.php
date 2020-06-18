@@ -205,8 +205,6 @@ class HCResourceService
                             $resource->size = Storage::disk($resource->disk)->size($cachePath);
                             $resource->path = $cachePath;
                             $resource->mime_type = 'image/jpg';
-                        } else {
-                            $resource->path = storage_path('app/' . $resource->path);
                         }
                     }
                     break;
@@ -393,7 +391,7 @@ class HCResourceService
             $video = $ffmpeg->open($videoPath);
             $duration = $video->getFFProbe()->format($videoPath)->get('duration');
 
-            $images = 5;
+            $images = rand(4,7);
             $maxSize = 0;
             $maxIndex;
             for ($i = 0; $i < $images; $i++) {

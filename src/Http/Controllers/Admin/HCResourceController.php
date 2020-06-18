@@ -130,40 +130,9 @@ class HCResourceController extends Controller
             $record = $this->service->upload(
                 $request->getFile(),
                 $request->getLastModified(),
-                null,
-                null,
-                $request->input('previewSizes', []),
-                $request->preserve
+                $request->getOwnerId(),
+                $request->getPreserve()
             );
-
-            $data = $request->all();
-
-            if (sizeof($data) > 2) {
-                array_forget($data, ['file', 'lastModified']);
-
-                /** @var HCResource $recordM */
-                $recordM = $this->service->getRepository()->find($record['id']);
-                $recordM->update($data);
-
-                $translation = [
-                    'language_code' => app()->getLocale(),
-                    'label' => '',
-                ];
-
-                foreach ($data as $key => $value) {
-                    if (strpos($key, 'translation_') !== false) {
-                        $key = explode('_', $key)[1];
-
-                        $translation[$key] = $value;
-                    } else {
-                        if ($key === 'tags') {
-                            $recordM->tags()->sync(explode(',', $value));
-                        }
-                    }
-                }
-
-                $recordM->translation()->create($translation);
-            }
 
             $this->connection->commit();
         } catch (\Throwable $exception) {

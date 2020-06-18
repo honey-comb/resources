@@ -60,6 +60,12 @@ class CreateHcResourceTable extends Migration
             $table->string('checksum', 64)->nullable();
 
             $table->foreign('uploaded_by')->references('id')->on('users')->onUpdate('NO ACTION')->onDelete('NO ACTION');
+
+            $table->dateTime('original_at')->nullable();
+            $table->string('disk', 30)->default('local');
+            $table->boolean('preserve')->default(0);
+
+            $table->uuid('owner_id')->nullable();
         });
     }
 

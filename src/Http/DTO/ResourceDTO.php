@@ -5,7 +5,20 @@ namespace HoneyComb\Resources\Http\DTO;
 use HoneyComb\Resources\Models\HCResource;
 use HoneyComb\Starter\DTO\HCBaseDTO;
 
-class ResourceDTO extends HCBaseDTO {
+class ResourceDTO extends HCBaseDTO
+{
+
+    private $uploadData;
+
+    public function getUploadData()
+    {
+
+    }
+
+    public function setUploadData()
+    {
+        
+    }
 
     /**
      * @param HCResource $resource
@@ -35,7 +48,7 @@ class ResourceDTO extends HCBaseDTO {
     /**
      * @return array
      */
-    public function jsonDataList (): array
+    public function jsonDataList(): array
     {
         return [
             'id' => $this->id,

@@ -37,6 +37,20 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * Class HCResource
  * @package HoneyComb\Resources\Models
+ *
+ * @property string $id
+ * @property string $uploaded_by
+ * @property string $path
+ * @property string $original_name
+ * @property string $safe_name
+ * @property string $extension
+ * @property string $mime_type
+ * @property string $size
+ * @property string $checksum
+ * @property string $original_at
+ * @property string $disk
+ * @property string $preserve
+ * @property string $owner_id
  */
 class HCResource extends HCUuidSoftModel
 {
@@ -67,6 +81,7 @@ class HCResource extends HCUuidSoftModel
         'original_at',
         'disk',
         'preserve',
+        'owner_id',
     ];
 
     protected $with = [];

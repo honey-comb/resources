@@ -25,7 +25,7 @@
  * http://www.interactivesolutions.lt
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace HoneyComb\Resources\Requests;
 
@@ -64,7 +64,7 @@ class HCResourceRequest extends FormRequest
     /**
      * @return null|string
      */
-    public function getLastModified(): ? string
+    public function getLastModified(): ?string
     {
         if ($this->has('lastModified')) {
             return Carbon::createFromTimestampMs($this->input('lastModified'))->toDateTimeString();
@@ -107,5 +107,29 @@ class HCResourceRequest extends FormRequest
         }
 
         return [];
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getPreserve()
+    {
+        if ($this->has('preserve')) {
+            return $this->preserve;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getOwnerId()
+    {
+        if ($this->has('owner_id')) {
+            return $this->owner_id;
+        }
+
+        return null;
     }
 }

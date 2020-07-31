@@ -477,7 +477,8 @@ class HCResourceService
         string $source,
         string $disk = null,
         string $customId = null,
-        string $mimeType = null
+        string $mimeType = null,
+        string $ownerId = null
     ): ?array
     {
         // TODO maybe we should add exceptions instead of returning null values?
@@ -521,7 +522,7 @@ class HCResourceService
         $file = new UploadedFile($destination, $fileName, $mimeType, filesize($destination), null, true);
 
         //TODO change preservation / owner / disk locations
-        return $this->upload($file, null, null, false, $disk, $customId);
+        return $this->upload($file, null, $ownerId, false, $disk, $customId);
     }
 
     /**
@@ -559,9 +560,8 @@ class HCResourceService
 
             foreach ($headers as $header) {
                 if (strpos($header, 'filename')) {
-                    $name = explode('filename="', $header);
+                    $name = explode('filename=', $header);
                     $name = rtrim($name[1], '"');
-
                     $name = explode('.', $name);
 
                     if (sizeof($name) > 1) {

@@ -66,4 +66,13 @@ class HCResourceController extends Controller
     {
         return $this->service->show($id, $width, $height, $fit);
     }
+
+    /**
+     * @param string $id
+     * @param string $transpose
+     */
+    public function rotated(string $id, string $transpose)
+    {
+        return $this->service->showRotatedVideo($id, $transpose);
+    }
 }

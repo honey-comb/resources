@@ -10,6 +10,12 @@ Route::prefix('api/resources')
         Route::post('/upload', 'HCResourceController@store');
     });
 
+Route::prefix('resource')
+    ->middleware('web')
+    ->namespace('\\HoneyComb\\Resources\\Http\\Controllers\\Frontend')
+    ->group(function () {
+        Route::get('/{id}/rotated/{transponse}', 'HCResourceController@rotated')->name('rotated.video');
+    });
 
 Route::prefix('resource')
     ->middleware('web')

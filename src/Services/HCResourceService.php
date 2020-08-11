@@ -31,6 +31,8 @@ namespace HoneyComb\Resources\Services;
 
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
+use FFMpeg\Filters\Video\RotateFilter;
+use FFMpeg\Format\Video\X264;
 use FFMpeg\Media\Audio;
 use FFMpeg\Media\Video;
 use HoneyComb\Resources\Http\DTO\ResourceDTO;
@@ -40,7 +42,6 @@ use HoneyComb\Resources\Repositories\HCResourceRepository;
 use HoneyComb\Resources\Requests\HCResourceRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Constraint;
 use Intervention\Image\Facades\Image;
@@ -110,17 +111,14 @@ class HCResourceService
      * @param bool $fit
      * @return StreamedResponse
      */
-    public function show(?string $id, int $width, int $height, bool $fit): StreamedResponse
+    public function show(string $id, int $width, int $height, bool $fit): StreamedResponse
     {
         if (is_null($id)) {
             logger()->info('resourceId is null');
             exit;
         }
 
-        // cache resource for 10 days
-        $resource = Cache::remember($id, 60 * 24 * 10, function () use ($id) {
-            return $this->getRepository()->find($id);
-        });
+        $resource = $this->getRepository()->find($id);
 
         if (!$resource) {
             logger()->info('File record not found', ['id' => $id]);
@@ -391,7 +389,7 @@ class HCResourceService
             $video = $ffmpeg->open($videoPath);
             $duration = $video->getFFProbe()->format($videoPath)->get('duration');
 
-            $images = rand(4,7);
+            $images = rand(4, 7);
             $maxSize = 0;
             $maxIndex;
             for ($i = 0; $i < $images; $i++) {
@@ -426,6 +424,77 @@ class HCResourceService
         $name = str_replace($resource->extension, '', $resource->original_name);
 
         return str_slug($name) . $resource->extension;
+    }
+
+    /**
+     * @param string $id
+     * @param string $transpose
+     */
+    public function showRotatedVideo(string $id, string $transpose)
+    {
+        if (is_null($id)) {
+            logger()->info('resourceId is null');
+            exit;
+        }
+
+        $resource = $this->getRepository()->find($id);
+
+        if (!$resource) {
+            logger()->info('File record not found', ['id' => $id]);
+            exit;
+        }
+
+        if ($resource->mime_type !== 'video/mp4') {
+            logger()->info('Only videos can be rotated');
+            exit;
+        }
+
+        $rotatedDir = storage_path('app/video-rotated/' . $transpose . '/');
+        $rotatedFullPath = $rotatedDir . $id . '.mp4';
+
+        if (!file_exists($rotatedFullPath)) {
+
+            switch ($transpose) {
+                case 1 :
+
+                    $rotation = RotateFilter::ROTATE_90;
+                    break;
+
+                case 2 :
+
+                    $rotation = RotateFilter::ROTATE_180;
+                    break;
+
+                case 3 :
+
+                    $rotation = RotateFilter::ROTATE_270;
+                    break;
+
+                default:
+                    logger()->info('Available options: 1,2,3');
+                    exit;
+            }
+
+            $ffmpeg = FFMpeg::create();
+            $video = $ffmpeg->open(storage_path('app/' . $resource->path));
+            //$video->filters()->custom('-qscale 0');
+            $video->filters()->rotate($rotation);
+
+            if (!file_exists($rotatedDir)) {
+                mkdir($rotatedDir, 0755, true);
+            }
+            $video->save(new X264('aac'), $rotatedFullPath);
+        }
+
+        $resource->path = "video-rotated/$transpose/$id.mp4";
+
+        $headers = [
+            'Content-Type' => $resource->mime_type,
+            'Content-Length' => Storage::disk($resource->disk)->size($resource->path),
+        ];
+
+        return Storage::disk($resource->disk)
+            ->response($resource->path, $this->getOriginalFileName($resource), $headers);
     }
 
     /**
@@ -487,6 +556,8 @@ class HCResourceService
                 return $resource->toArray();
             }
         }
+
+        print_r('downloading | ' . $customId . "\r\n");
 
         $fileName = $this->getFileName($source);
 

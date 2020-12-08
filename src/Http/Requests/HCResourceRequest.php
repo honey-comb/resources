@@ -27,7 +27,7 @@
 
 declare(strict_types=1);
 
-namespace HoneyComb\Resources\Requests;
+namespace HoneyComb\Resources\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;

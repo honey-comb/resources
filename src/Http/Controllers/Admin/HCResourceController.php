@@ -27,12 +27,12 @@
 
 declare(strict_types=1);
 
-namespace HoneyComb\Resources\Http\Controllers;
+namespace HoneyComb\Resources\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\DTO\ResourceDTO;
 use HoneyComb\Resources\Models\HCResource;
-use HoneyComb\Resources\Requests\HCResourceRequest;
+use HoneyComb\Resources\Http\Requests\HCResourceRequest;
 use HoneyComb\Resources\Services\HCResourceService;
 use HoneyComb\Starter\Helpers\HCResponse;
 use Illuminate\Contracts\Container\BindingResolutionException;

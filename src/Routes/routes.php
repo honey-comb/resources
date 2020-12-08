@@ -2,7 +2,7 @@
 
 Route::prefix('api/resources')
     ->middleware('api')
-    ->namespace('\\HoneyComb\\Resources\\Http\\Controllers')
+    ->namespace('\\HoneyComb\\Resources\\Http\\Controllers\\Admin')
     ->group(function () {
 
         Route::get('/', 'HCResourceController@getListPaginate');
